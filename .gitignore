@@ -71,3 +71,10 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+FightingGame/Temp
+FightingGame/Library/BurstCache
+FightingGame/Library/PackageCache
+FightingGame/Library/StateCache
+FightingGame/Library/ShaderCache
+FightingGame/Library/PackageManager/ProjectCache
+FightingGame/Library/PackageManager/ProjectCache.md5
