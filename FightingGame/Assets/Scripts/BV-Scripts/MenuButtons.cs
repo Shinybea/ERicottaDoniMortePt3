@@ -14,6 +14,9 @@ public class MenuButtons : MonoBehaviour
         _mainMenuPanel = GameObject.Find("SelectionPanel");
         _levelPanel = GameObject.Find("LevelPanel");
         _optionsPanel = GameObject.Find("OptionsPanel");
+        _mainMenuPanel.SetActive(true);
+        _levelPanel.SetActive(false);
+        _optionsPanel.SetActive(false);
     }
 
     void Update()

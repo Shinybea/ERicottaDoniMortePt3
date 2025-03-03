@@ -540,7 +540,7 @@ GameObject:
   - component: {fileID: 125513484}
   - component: {fileID: 125513483}
   m_Layer: 5
-  m_Name: Back
+  m_Name: Save
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -612,7 +612,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 806714316}
         m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
-        m_MethodName: BackToMainMenu
+        m_MethodName: SaveOptions
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1387,9 +1387,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 992563883}
-  - {fileID: 1284838211}
-  - {fileID: 1000872582}
-  - {fileID: 718488446}
   m_Father: {fileID: 1983894393}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1739,7 +1736,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 68906381}
-  m_Father: {fileID: 564283557}
+  m_Father: {fileID: 1000872582}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2476,7 +2473,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Back
+  m_text: Save
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3106,7 +3103,8 @@ RectTransform:
   m_Children:
   - {fileID: 1575467577}
   - {fileID: 349398965}
-  m_Father: {fileID: 564283557}
+  - {fileID: 718488446}
+  m_Father: {fileID: 1983894393}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -4669,7 +4667,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 315127158}
-  m_Father: {fileID: 564283557}
+  m_Father: {fileID: 1983894393}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -5945,7 +5943,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Save
+  m_text: Back
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -6929,7 +6927,7 @@ GameObject:
   - component: {fileID: 1756048814}
   - component: {fileID: 1756048813}
   m_Layer: 5
-  m_Name: Save
+  m_Name: Back
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7001,7 +6999,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 806714316}
         m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
-        m_MethodName: SaveOptions
+        m_MethodName: BackToMainMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -8217,6 +8215,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 564283557}
+  - {fileID: 1284838211}
+  - {fileID: 1000872582}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
