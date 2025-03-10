@@ -4,43 +4,51 @@ public class InteractionListener : MonoBehaviour
 {
     private InteractionCommand _interactionCommand;
     private GameObject _currentPlayer;
-    private Transform _endPos;
-    
     
     void Start()
     {
-        _currentPlayer = GameObject.FindGameObjectWithTag("Player");
-        _interactionCommand = _currentPlayer.GetComponent<InteractionCommand>();
-
-        _endPos = GetComponentInChildren<Transform>();
-        
-        _interactionCommand.InteractionStart += TeleportPlayer;
-        _interactionCommand.InteractionEnd += StopInteractionTest;
+        _currentPlayer = null;
+        _interactionCommand = null;
     }
 
-    void Update()
+    private void Interact(GameObject player, Transform target)
     {
+        _currentPlayer = player; 
+        Debug.Log($"Player: {_currentPlayer.name} is interacting with {target.name} = {this.gameObject.name}");
         
     }
 
-    private void TeleportPlayer(GameObject player, Transform target)
+    private void StopInteraction(GameObject player, Transform target)
     {
-        _currentPlayer = player; //the player who invoked the interaction successfully
-        Debug.Log($"Player: {_currentPlayer.name}");
-        _currentPlayer.transform.position = _endPos.position;
-        _currentPlayer.transform.rotation = _endPos.rotation;
-
+        Debug.Log($"Player: {_currentPlayer.name} has stopped interacting with {target.name} = {this.gameObject.name}");
+        DeregisterInteraction();
         _currentPlayer = null;
     }
 
-    private void StopInteractionTest(Transform target)
+   
+    public void RegisterInteraction(InteractionCommand interactionCommand)
     {
-        Debug.Log("Interaction Stop Test");
+        if (_interactionCommand != null)
+        {
+            _interactionCommand.Interaction1 -= Interact;
+            _interactionCommand.EndInteraction -= StopInteraction;
+        }
+        _interactionCommand = interactionCommand;
+        
+        if (_interactionCommand != null)
+        {
+            _interactionCommand.Interaction1 += Interact;
+            _interactionCommand.EndInteraction += StopInteraction;
+        }
     }
 
-    private void OnDestroy()
+    public void DeregisterInteraction()
     {
-        _interactionCommand.InteractionStart -= TeleportPlayer;
-        _interactionCommand.InteractionEnd -= StopInteractionTest;
+        if (_interactionCommand != null)
+        {
+            _interactionCommand.Interaction1 -= Interact;
+            _interactionCommand.EndInteraction -= StopInteraction;
+            _interactionCommand = null;
+        }
     }
 }

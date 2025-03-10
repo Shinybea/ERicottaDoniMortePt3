@@ -3,8 +3,13 @@ using UnityEngine;
 
 public class InteractionCommand : MonoBehaviour
 {
-    public event Action<GameObject, Transform> InteractionStart;
-    public event Action<Transform> InteractionEnd;
+    public event Action<GameObject, Transform> InteractionTeleport;
+    
+    public event Action<GameObject, Transform> Interaction1;
+    public event Action<GameObject, Transform> Interaction2;
+    public event Action<GameObject, Transform> EndInteraction;
+
+
 
     [SerializeField] private float interactionDistance;
     [SerializeField] private float interactionRadius;
@@ -14,7 +19,7 @@ public class InteractionCommand : MonoBehaviour
     
     void Start()
     {
-        _player = GameObject.FindGameObjectWithTag("Player");
+        _player = this.gameObject;
     }
 
     void Update()
@@ -23,40 +28,83 @@ public class InteractionCommand : MonoBehaviour
         Vector3 belowPlayer = Vector3.down;
         RaycastHit hit;
         
-        if (Input.GetKeyUp(KeyCode.E))
+        if (Input.GetKeyUp(KeyCode.T))
         {
+            Debug.Log("pressed T");
             if (Physics.SphereCast(_player.transform.position, interactionRadius, playerDirection, out hit,
                     interactionDistance))
             {
                 var target = hit.collider.gameObject;
                 _currentTarget = target.transform;
-                Interact(_currentTarget);
+                Teleport(_currentTarget);
             }
         }
-
-        if (Input.GetKeyUp(KeyCode.R))
+        
+        if (Physics.SphereCast(_player.transform.position, interactionRadius, playerDirection, out hit,
+                interactionDistance))
         {
-            if (Physics.SphereCast(_player.transform.position, interactionRadius, playerDirection, out hit,
-                    interactionDistance))
+            var target = hit.collider.gameObject;
+            _currentTarget = target.transform;
+            InteractionListener listener = target.GetComponent<InteractionListener>();
+            if (listener == null) return;
+            if (listener != null) { listener.RegisterInteraction(this); }
+
+            if (Input.GetKeyUp(KeyCode.Z))
             {
-                var target = hit.collider.gameObject;
-                _currentTarget = target.transform;
-                StopInteraction(_currentTarget);
+                Debug.Log("Pressed Z");
+                Interact1(_currentTarget); 
+            }
+
+            if (Input.GetKeyUp(KeyCode.X))
+            {
+                Debug.Log("Pressed X");
+                Interact2(_currentTarget);
+                
+            }
+            if (Input.GetKeyUp(KeyCode.C))
+            {
+                Debug.Log("Pressed C");
+                EndInteract(_currentTarget); 
             }
         }
     }
 
-    private void Interact(Transform target)
+    private void Teleport(Transform target)
     {
         GameObject player = this.gameObject;
-        Debug.Log("Interact with target");
-        InteractionStart?.Invoke(player, target);
+        Debug.Log("Call Teleport");
+        InteractionTeleport?.Invoke(player, target);
     }
 
-    private void StopInteraction(Transform target)
+    private void Interact1(Transform target)
     {
-        Debug.Log("Stopped interaction");
-        InteractionEnd?.Invoke(target);
+        GameObject player = this.gameObject;
+        Interaction1?.Invoke(player, target);
+        _currentTarget = target;
+    }
+    private void Interact2(Transform target)
+    {
+        GameObject player = this.gameObject;
+        Interaction2?.Invoke(player, target);
+        _currentTarget = target;
+    }
+    private void EndInteract(Transform target)
+    {
+        GameObject player = this.gameObject;
+        EndInteraction?.Invoke(player, target);
         _currentTarget = null;
+    }
+    
+    
+    //DEBUGGING
+    void OnDrawGizmos()
+    {
+        if (_player == null) return;
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(_player.transform.position, interactionRadius);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(_player.transform.position, _player.transform.position + _player.transform.forward * interactionDistance);
     }
 }
