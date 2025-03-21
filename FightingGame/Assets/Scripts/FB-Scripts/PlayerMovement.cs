@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 //TODO:
 // quando il player si scontra con la piattaforma di lato, non deve fermarsi
@@ -24,22 +25,39 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
 
     private Rigidbody rb;
-    private bool isGrounded;
-    private bool wasGrounded;
+    [SerializeField]private bool isGrounded;
+    [SerializeField]private bool wasGrounded;
     private float horizontalInput;
     private float verticalInput;
     private bool facingRight = true;
     private Dictionary<string, int> activeTimers = new Dictionary<string, int>();
-    private bool hasJumped;
+    [SerializeField]private bool hasJumped;
+    private PlayerControls playerControls;
+
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
 
+        playerControls = new PlayerControls(); // Inizializza i controlli
+        playerControls.Enable(); // Abilita gli input
+
         rb.freezeRotation = true;
 
         activeTimers.Add("coyoteTime", 0);
 
+
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        isGrounded=true;
+        Debug.Log("collided");
+    }
+
+        void OnCollisionExit(Collision collision)
+    {
+        isGrounded=false;
     }
 
 
@@ -50,7 +68,8 @@ public class PlayerMovement : MonoBehaviour
 
         JumpControl();
 
-        horizontalInput = Input.GetAxis("Horizontal");
+        Vector2 movementInput = playerControls.Player1.Move.ReadValue<Vector2>();
+        horizontalInput = movementInput.x;
 
         if ((horizontalInput > 0 && !facingRight) || (horizontalInput < 0 && facingRight))
         {
@@ -95,14 +114,16 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void JumpControl()
+     void JumpControl()
     {
-        // Ground check using sphere cast
-        isGrounded = Physics.CheckSphere(groundCheck.position, checkRadius, groundLayer);
-        if (isGrounded) hasJumped = false;
+        
+        //if (isGrounded) hasJumped = false;
+        if(!wasGrounded && isGrounded){
+            hasJumped = false;
+        }
+        bool jumpPressed = playerControls.Player1.Jump.triggered;
 
-
-        if (Input.GetButtonDown("Jump") && (isGrounded || activeTimers["coyoteTime"] > 0))
+        if (jumpPressed && (isGrounded || activeTimers["coyoteTime"] > 0)&&!hasJumped)
         {
             Debug.Log("jump: hasJumped-->" + hasJumped + "//isGrounded-->" + isGrounded + "//coyote-->" + activeTimers["coyoteTime"]);
             activeTimers["coyoteTime"] = 0;
@@ -116,8 +137,9 @@ public class PlayerMovement : MonoBehaviour
             Debug.Log("coyoteStart: hasJumped-->" + hasJumped + "//isGrounded-->" + isGrounded + "//wasGrounded-->" + wasGrounded);
             activeTimers["coyoteTime"] = coyoteTimer;
         }
-
+        
         wasGrounded = isGrounded;
-    }
+    } 
+
 
 }
