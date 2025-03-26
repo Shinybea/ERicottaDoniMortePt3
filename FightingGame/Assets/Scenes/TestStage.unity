@@ -546,6 +546,38 @@ PrefabInstance:
       propertyPath: groundLayer.m_Bits
       value: 256
       objectReference: {fileID: 0}
+    - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
+      propertyPath: speedbreakpoints.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
+      propertyPath: accelerationValues.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
+      propertyPath: 'speedbreakpoints.Array.data[0]'
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
+      propertyPath: 'speedbreakpoints.Array.data[1]'
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
+      propertyPath: 'speedbreakpoints.Array.data[2]'
+      value: 150
+      objectReference: {fileID: 0}
+    - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
+      propertyPath: 'accelerationValues.Array.data[0]'
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
+      propertyPath: 'accelerationValues.Array.data[1]'
+      value: 1.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
+      propertyPath: 'accelerationValues.Array.data[2]'
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3469505356014619884, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

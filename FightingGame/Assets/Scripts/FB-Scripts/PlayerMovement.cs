@@ -1,11 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using JetBrains.Annotations;
 
 //TODO:
-// quando il player si scontra con la piattaforma di lato, non deve fermarsi
-// input buffer
-// coyote time
 // accellerazione
 // stun status
 // dash
@@ -27,6 +25,9 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
     [SerializeField] private bool isGrounded;
     [SerializeField] private bool wasGrounded;
+    [SerializeField] private int speedTracker = 0;
+    [SerializeField] private int[] speedbreakpoints;
+    [SerializeField] private float[] accelerationValues;
     private float horizontalInput;
     private float verticalInput;
     private bool facingRight = true;
@@ -34,7 +35,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool hasJumped;
     private PlayerControls playerControls;
 
-
+    //START & UPDATE
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -49,10 +50,27 @@ public class PlayerMovement : MonoBehaviour
 
 
     }
+    void Update()
+    {
+
+        UpdateTimers();
+
+        JumpControl();
+
+        HandleMovement();
+
+    }
+
+    //COLLISION CONTROL
+    void OnCollisionStay(Collision collision)
+    {
+        CheckGround(collision);
+        Debug.Log("collided");
+    }
 
     void OnCollisionEnter(Collision collision)
     {
-        isGrounded = true;
+        CheckGround(collision);
         Debug.Log("collided");
     }
 
@@ -61,35 +79,7 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = false;
     }
 
-
-    void Update()
-    {
-
-        UpdateTimers();
-
-        JumpControl();
-
-        Vector2 movementInput = playerControls.Player1.Move.ReadValue<Vector2>();
-        horizontalInput = movementInput.x;
-
-        if ((horizontalInput > 0 && !facingRight) || (horizontalInput < 0 && facingRight))
-        {
-            Flip();
-        }
-
-        // Calculate movement force
-        Vector3 moveDirection = new Vector3(horizontalInput, 0, 0);
-
-        // Apply different movement force based on ground state
-        rb.linearVelocity = new Vector3(
-            moveDirection.x * moveSpeed,
-            rb.linearVelocity.y,
-            0
-        );
-
-
-    }
-
+    //MOVEMENT
     void Flip()
     {
         // Switch facing direction
@@ -97,22 +87,6 @@ public class PlayerMovement : MonoBehaviour
 
         // Rotate 180 degrees around Y axis
         transform.Rotate(0, 180, 0);
-    }
-
-
-    void UpdateTimers()
-    {
-        List<string> keysToUpdate = new List<string>(activeTimers.Keys);
-
-        foreach (string key in keysToUpdate)
-        {
-            if (activeTimers[key] > 0)
-            {
-                activeTimers[key] -= 1;
-                if (activeTimers["coyoteTime"] == 0) Debug.Log("coyote died");
-            }
-
-        }
     }
 
     void JumpControl()
@@ -131,14 +105,19 @@ public class PlayerMovement : MonoBehaviour
 
             if ((isGrounded || activeTimers["coyoteTime"] > 0) && !hasJumped)
             {
-                executeJump();
-            }else{
+                ExecuteJump();
+            }
+            else
+            {
                 activeTimers["jumpBuffer"] = jumpBufferTimer;
             }
 
-        }else{
-            if(isGrounded && !wasGrounded&&activeTimers["jumpBuffer"]>0){
-                executeJump();
+        }
+        else
+        {
+            if (isGrounded && !wasGrounded && activeTimers["jumpBuffer"] > 0)
+            {
+                ExecuteJump();
             }
         }
 
@@ -151,11 +130,82 @@ public class PlayerMovement : MonoBehaviour
         wasGrounded = isGrounded;
     }
 
-    void executeJump(){
+    void ExecuteJump()
+    {
         activeTimers["coyoteTime"] = 0;
         activeTimers["jumpBuffer"] = 0;
         hasJumped = true;
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
     }
 
+    void HandleMovement()
+    {
+        if(speedTracker<=0){
+            speedTracker=0;
+        }
+
+        Vector2 movementInput = playerControls.Player1.Move.ReadValue<Vector2>();
+        horizontalInput = movementInput.x;
+        speedTracker++;
+
+        if ((horizontalInput > 0 && !facingRight) || (horizontalInput < 0 && facingRight))
+        {
+            Flip();
+            speedTracker-=10;
+        }
+
+        // Calculate movement force
+        Vector3 moveDirection = new Vector3(horizontalInput, 0, 0);
+
+        float speed = AdjustSpeed(moveDirection.x) * moveSpeed;
+
+        // Apply different movement force based on ground state
+        rb.linearVelocity = new Vector3(
+            speed,
+            rb.linearVelocity.y,
+            0
+        );
+
+        if(horizontalInput == 0){
+            speedTracker-=10;
+        }
+    }
+    //MISC
+    void CheckGround(Collision collision)
+    {
+        if (collision.contacts.Length > 0)
+        {
+            ContactPoint contact = collision.contacts[0];
+            if (Vector3.Dot(contact.normal, Vector3.up) > 0.5)
+            {
+                isGrounded = true;
+            }
+        }
+    }
+
+    void UpdateTimers()
+    {
+        List<string> keysToUpdate = new List<string>(activeTimers.Keys);
+
+        foreach (string key in keysToUpdate)
+        {
+            if (activeTimers[key] > 0)
+            {
+                activeTimers[key] -= 1;
+                if (activeTimers["coyoteTime"] == 0) Debug.Log("coyote died");
+            }
+
+        }
+    }
+
+    float AdjustSpeed(float speed){
+        if(speedTracker>=speedbreakpoints[2]){
+            speed*=accelerationValues[2];
+        }else if(speedTracker>=speedbreakpoints[1]){
+            speed*=accelerationValues[1];
+        }else if(speedTracker>=speedbreakpoints[0]){
+            speed*=accelerationValues[0];
+        }
+        return speed;
+    }
 }
