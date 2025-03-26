@@ -17,7 +17,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float moveSpeed = 6f;
     [SerializeField] private float jumpForce = 8f;
     [SerializeField] private int coyoteTimer = 100;
-    [SerializeField] private int inputBufferTimer = 10;
+    [SerializeField] private int jumpBufferTimer = 10;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheck;
@@ -25,13 +25,13 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
 
     private Rigidbody rb;
-    [SerializeField]private bool isGrounded;
-    [SerializeField]private bool wasGrounded;
+    [SerializeField] private bool isGrounded;
+    [SerializeField] private bool wasGrounded;
     private float horizontalInput;
     private float verticalInput;
     private bool facingRight = true;
     private Dictionary<string, int> activeTimers = new Dictionary<string, int>();
-    [SerializeField]private bool hasJumped;
+    [SerializeField] private bool hasJumped;
     private PlayerControls playerControls;
 
 
@@ -45,19 +45,20 @@ public class PlayerMovement : MonoBehaviour
         rb.freezeRotation = true;
 
         activeTimers.Add("coyoteTime", 0);
+        activeTimers.Add("jumpBuffer", 0);
 
 
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        isGrounded=true;
+        isGrounded = true;
         Debug.Log("collided");
     }
 
-        void OnCollisionExit(Collision collision)
+    void OnCollisionExit(Collision collision)
     {
-        isGrounded=false;
+        isGrounded = false;
     }
 
 
@@ -114,22 +115,31 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-     void JumpControl()
+    void JumpControl()
     {
-        
+
         //if (isGrounded) hasJumped = false;
-        if(!wasGrounded && isGrounded){
+        if (!wasGrounded && isGrounded)
+        {
             hasJumped = false;
         }
         bool jumpPressed = playerControls.Player1.Jump.triggered;
 
-        if (jumpPressed && (isGrounded || activeTimers["coyoteTime"] > 0)&&!hasJumped)
-        {
-            Debug.Log("jump: hasJumped-->" + hasJumped + "//isGrounded-->" + isGrounded + "//coyote-->" + activeTimers["coyoteTime"]);
-            activeTimers["coyoteTime"] = 0;
-            hasJumped = true;
 
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
+        if (jumpPressed)
+        {
+
+            if ((isGrounded || activeTimers["coyoteTime"] > 0) && !hasJumped)
+            {
+                executeJump();
+            }else{
+                activeTimers["jumpBuffer"] = jumpBufferTimer;
+            }
+
+        }else{
+            if(isGrounded && !wasGrounded&&activeTimers["jumpBuffer"]>0){
+                executeJump();
+            }
         }
 
         if (!isGrounded && wasGrounded && !hasJumped)
@@ -137,9 +147,15 @@ public class PlayerMovement : MonoBehaviour
             Debug.Log("coyoteStart: hasJumped-->" + hasJumped + "//isGrounded-->" + isGrounded + "//wasGrounded-->" + wasGrounded);
             activeTimers["coyoteTime"] = coyoteTimer;
         }
-        
-        wasGrounded = isGrounded;
-    } 
 
+        wasGrounded = isGrounded;
+    }
+
+    void executeJump(){
+        activeTimers["coyoteTime"] = 0;
+        activeTimers["jumpBuffer"] = 0;
+        hasJumped = true;
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
+    }
 
 }

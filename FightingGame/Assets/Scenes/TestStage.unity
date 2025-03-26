@@ -528,16 +528,20 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
       propertyPath: checkRadius
-      value: 0.01
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
       propertyPath: coyoteTimer
-      value: 10000
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
       propertyPath: groundCheck
       value: 
       objectReference: {fileID: 2118868401}
+    - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
+      propertyPath: jumpBufferTimer
+      value: 10000
+      objectReference: {fileID: 0}
     - target: {fileID: 884403915706738773, guid: 268ea67042ed64a10843f70fc47be826, type: 3}
       propertyPath: groundLayer.m_Bits
       value: 256
