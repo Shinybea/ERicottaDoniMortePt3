@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 using JetBrains.Annotations;
 
 //TODO:
-// accellerazione
 // stun status
 // dash
 
@@ -28,6 +27,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private int speedTracker = 0;
     [SerializeField] private int[] speedbreakpoints;
     [SerializeField] private float[] accelerationValues;
+    [SerializeField] private float dashSpeed;
+    [SerializeField] private int dashTimer;
     private float horizontalInput;
     private float verticalInput;
     private bool facingRight = true;
@@ -47,9 +48,12 @@ public class PlayerMovement : MonoBehaviour
 
         activeTimers.Add("coyoteTime", 0);
         activeTimers.Add("jumpBuffer", 0);
+        activeTimers.Add("dashTimer", 0);
+
 
 
     }
+
     void Update()
     {
 
@@ -58,6 +62,8 @@ public class PlayerMovement : MonoBehaviour
         JumpControl();
 
         HandleMovement();
+
+
 
     }
 
@@ -140,25 +146,36 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleMovement()
     {
-        if(speedTracker<=0){
-            speedTracker=0;
+        if (speedTracker <= 0)
+        {
+            speedTracker = 0;
         }
+        float speed;
 
         Vector2 movementInput = playerControls.Player1.Move.ReadValue<Vector2>();
         horizontalInput = movementInput.x;
+        Vector3 moveDirection = new Vector3(horizontalInput, 0, 0);
+
+
+        if (playerControls.Player1.Dash.triggered) activeTimers["dashTimer"] = dashTimer;
+
+        if (activeTimers["dashTimer"] > 0)
+        {
+            speed = moveSpeed * moveDirection.x * dashSpeed;
+            Debug.Log("dashing");
+        }
+        else
+        {
+            speed = AdjustSpeed(moveDirection.x) * moveSpeed;
+        }
+
         speedTracker++;
 
         if ((horizontalInput > 0 && !facingRight) || (horizontalInput < 0 && facingRight))
         {
             Flip();
-            speedTracker-=10;
+            speedTracker -= 10;
         }
-
-        // Calculate movement force
-        Vector3 moveDirection = new Vector3(horizontalInput, 0, 0);
-
-        float speed = AdjustSpeed(moveDirection.x) * moveSpeed;
-
         // Apply different movement force based on ground state
         rb.linearVelocity = new Vector3(
             speed,
@@ -166,8 +183,9 @@ public class PlayerMovement : MonoBehaviour
             0
         );
 
-        if(horizontalInput == 0){
-            speedTracker-=10;
+        if (horizontalInput == 0)
+        {
+            speedTracker -= 10;
         }
     }
     //MISC
@@ -198,13 +216,19 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    float AdjustSpeed(float speed){
-        if(speedTracker>=speedbreakpoints[2]){
-            speed*=accelerationValues[2];
-        }else if(speedTracker>=speedbreakpoints[1]){
-            speed*=accelerationValues[1];
-        }else if(speedTracker>=speedbreakpoints[0]){
-            speed*=accelerationValues[0];
+    float AdjustSpeed(float speed)
+    {
+        if (speedTracker >= speedbreakpoints[2])
+        {
+            speed *= accelerationValues[2];
+        }
+        else if (speedTracker >= speedbreakpoints[1])
+        {
+            speed *= accelerationValues[1];
+        }
+        else if (speedTracker >= speedbreakpoints[0])
+        {
+            speed *= accelerationValues[0];
         }
         return speed;
     }
