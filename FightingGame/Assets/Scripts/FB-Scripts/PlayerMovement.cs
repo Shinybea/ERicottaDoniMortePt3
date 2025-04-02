@@ -2,10 +2,11 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using JetBrains.Annotations;
+using Unity.VisualScripting;
 
 //TODO:
 // stun status
-// dash
+
 
 
 public class PlayerMovement : MonoBehaviour
@@ -35,6 +36,9 @@ public class PlayerMovement : MonoBehaviour
     private Dictionary<string, int> activeTimers = new Dictionary<string, int>();
     [SerializeField] private bool hasJumped;
     private PlayerControls playerControls;
+    private Vector2 dashDirection;
+    private bool hasGravity = true;
+    private bool isDashing = false;
 
     //START & UPDATE
     void Start()
@@ -63,6 +67,8 @@ public class PlayerMovement : MonoBehaviour
 
         HandleMovement();
 
+        rb.useGravity = false;
+        if (hasGravity) rb.AddForce(AdjustGravity());
 
 
     }
@@ -141,7 +147,7 @@ public class PlayerMovement : MonoBehaviour
         activeTimers["coyoteTime"] = 0;
         activeTimers["jumpBuffer"] = 0;
         hasJumped = true;
-        rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, AdjustSpeed(jumpForce), rb.linearVelocity.z);
     }
 
     void HandleMovement()
@@ -156,36 +162,27 @@ public class PlayerMovement : MonoBehaviour
         horizontalInput = movementInput.x;
         Vector3 moveDirection = new Vector3(horizontalInput, 0, 0);
 
-
-        if (playerControls.Player1.Dash.triggered) activeTimers["dashTimer"] = dashTimer;
-
-        if (activeTimers["dashTimer"] > 0)
-        {
-            speed = moveSpeed * moveDirection.x * dashSpeed;
-            Debug.Log("dashing");
-        }
-        else
+        if (!dashController(movementInput))
         {
             speed = AdjustSpeed(moveDirection.x) * moveSpeed;
-        }
+            speedTracker++;
 
-        speedTracker++;
+            if ((horizontalInput > 0 && !facingRight) || (horizontalInput < 0 && facingRight))
+            {
+                Flip();
+                speedTracker -= 10;
+            }
+            // Apply different movement force based on ground state
+            rb.linearVelocity = new Vector3(
+                speed,
+                rb.linearVelocity.y,
+                0
+            );
 
-        if ((horizontalInput > 0 && !facingRight) || (horizontalInput < 0 && facingRight))
-        {
-            Flip();
-            speedTracker -= 10;
-        }
-        // Apply different movement force based on ground state
-        rb.linearVelocity = new Vector3(
-            speed,
-            rb.linearVelocity.y,
-            0
-        );
-
-        if (horizontalInput == 0)
-        {
-            speedTracker -= 10;
+            if (horizontalInput == 0 && rb.linearVelocity.y == 0)
+            {
+                speedTracker -= 10;
+            }
         }
     }
     //MISC
@@ -231,5 +228,55 @@ public class PlayerMovement : MonoBehaviour
             speed *= accelerationValues[0];
         }
         return speed;
+    }
+
+    Vector3 AdjustGravity()
+    {
+        var gravity = Physics.gravity;
+        if (speedTracker >= speedbreakpoints[2])
+        {
+            gravity *= accelerationValues[2];
+        }
+        else if (speedTracker >= speedbreakpoints[1])
+        {
+            gravity *= accelerationValues[1];
+        }
+        else if (speedTracker >= speedbreakpoints[0])
+        {
+            gravity *= accelerationValues[0];
+        }
+        return gravity;
+    }
+
+    bool dashController(Vector2 movementInput)
+    {
+    
+        if (playerControls.Player1.Dash.triggered)
+        {
+            activeTimers["dashTimer"] = dashTimer;
+            dashDirection = movementInput;
+
+
+        }
+
+        if (activeTimers["dashTimer"] > 0)
+        {
+            isDashing = true;
+            rb.linearVelocity = new Vector3(
+                moveSpeed * dashDirection.x * dashSpeed,
+                moveSpeed * dashDirection.y * dashSpeed,
+                0
+            );
+            Debug.Log("dashing");
+            speedTracker++;
+            return true;
+        }
+
+        if(activeTimers["dashTimer"] == 0&&isDashing){
+            isDashing = false;
+            rb.linearVelocity = new Vector3(0,0,0);
+        }
+        return false;
+
     }
 }
