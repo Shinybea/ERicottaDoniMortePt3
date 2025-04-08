@@ -45,17 +45,6 @@
             "bindings": [
                 {
                     "name": "",
-                    "id": "a2ad8c9f-0ce5-4f84-9b37-ac8f318a90b8",
-                    "path": "<Keyboard>/q",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Jump",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "66468d3c-501a-49e7-a772-2fd309142ea7",
                     "path": "<Keyboard>/w",
                     "interactions": "",
@@ -134,7 +123,7 @@
                 {
                     "name": "",
                     "id": "02bce911-bad3-4055-a77d-2ad7b85a138e",
-                    "path": "<Keyboard>/space",
+                    "path": "<Keyboard>/leftShift",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -169,6 +158,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Dash",
+                    "type": "Button",
+                    "id": "2e5d2563-7487-4b11-9506-391ebdb1a70c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Attack",
                     "type": "Button",
                     "id": "670034e7-54e6-4a7e-9caf-1c6d1bef7f08",
@@ -191,11 +189,33 @@
                 {
                     "name": "",
                     "id": "4ce185bf-6c72-4ba1-9945-77b80a28f556",
-                    "path": "<Keyboard>/u",
+                    "path": "<Keyboard>/i",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "259c4065-f9bd-42f4-b3dc-279f49b4aff3",
+                    "path": "<Keyboard>/rightShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Dash",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9e2327c2-591d-4484-9775-b33ba19a0101",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Dash",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

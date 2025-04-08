@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using JetBrains.Annotations;
 using Unity.VisualScripting;
+using System;
 
 //TODO:
 // stun status
+// differenzia player 1 e player 2
 
 
 
@@ -17,11 +19,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private int coyoteTimer = 100;
     [SerializeField] private int jumpBufferTimer = 10;
 
-    [Header("Ground Check")]
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private float checkRadius = 0.2f;
-    [SerializeField] private LayerMask groundLayer;
-
     private Rigidbody rb;
     [SerializeField] private bool isGrounded;
     [SerializeField] private bool wasGrounded;
@@ -30,6 +27,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float[] accelerationValues;
     [SerializeField] private float dashSpeed;
     [SerializeField] private int dashTimer;
+    [SerializeField] private bool isPlayer1;
     private float horizontalInput;
     private float verticalInput;
     private bool facingRight = true;
@@ -39,6 +37,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 dashDirection;
     private bool hasGravity = true;
     private bool isDashing = false;
+    private object controls; 
 
     //START & UPDATE
     void Start()
@@ -83,6 +82,7 @@ public class PlayerMovement : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         CheckGround(collision);
+        HandlePlayerCollision(collision);
         Debug.Log("collided");
     }
 
@@ -109,7 +109,7 @@ public class PlayerMovement : MonoBehaviour
         {
             hasJumped = false;
         }
-        bool jumpPressed = playerControls.Player1.Jump.triggered;
+        bool jumpPressed = isPlayer1?playerControls.Player1.Jump.triggered:playerControls.Player2.Jump.triggered;
 
 
         if (jumpPressed)
@@ -158,11 +158,11 @@ public class PlayerMovement : MonoBehaviour
         }
         float speed;
 
-        Vector2 movementInput = playerControls.Player1.Move.ReadValue<Vector2>();
+        Vector2 movementInput = isPlayer1?playerControls.Player1.Move.ReadValue<Vector2>():playerControls.Player2.Move.ReadValue<Vector2>();
         horizontalInput = movementInput.x;
         Vector3 moveDirection = new Vector3(horizontalInput, 0, 0);
 
-        if (!dashController(movementInput))
+        if (!DashController(movementInput))
         {
             speed = AdjustSpeed(moveDirection.x) * moveSpeed;
             speedTracker++;
@@ -198,6 +198,11 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    void HandlePlayerCollision(Collision collision){
+        if (collision.gameObject.CompareTag("Player")){
+            Debug.Log("collided");
+        }
+    }
     void UpdateTimers()
     {
         List<string> keysToUpdate = new List<string>(activeTimers.Keys);
@@ -248,10 +253,10 @@ public class PlayerMovement : MonoBehaviour
         return gravity;
     }
 
-    bool dashController(Vector2 movementInput)
+    bool DashController(Vector2 movementInput)
     {
     
-        if (playerControls.Player1.Dash.triggered)
+        if (isPlayer1?playerControls.Player1.Dash.triggered:playerControls.Player2.Dash.triggered)
         {
             activeTimers["dashTimer"] = dashTimer;
             dashDirection = movementInput;
