@@ -7,7 +7,7 @@ using System;
 
 //TODO:
 // stun status
-// differenzia player 1 e player 2
+
 
 
 
@@ -28,6 +28,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float dashSpeed;
     [SerializeField] private int dashTimer;
     [SerializeField] private bool isPlayer1;
+
     private float horizontalInput;
     private float verticalInput;
     private bool facingRight = true;
@@ -37,7 +38,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 dashDirection;
     private bool hasGravity = true;
     private bool isDashing = false;
-    private object controls; 
+    private object controls;
 
     //START & UPDATE
     void Start()
@@ -52,6 +53,7 @@ public class PlayerMovement : MonoBehaviour
         activeTimers.Add("coyoteTime", 0);
         activeTimers.Add("jumpBuffer", 0);
         activeTimers.Add("dashTimer", 0);
+        activeTimers.Add("stun", 0);
 
 
 
@@ -62,9 +64,13 @@ public class PlayerMovement : MonoBehaviour
 
         UpdateTimers();
 
-        JumpControl();
+        if (activeTimers["stun"] == 0)
+        {
+            JumpControl();
 
-        HandleMovement();
+            HandleMovement();
+        }
+
 
         rb.useGravity = false;
         if (hasGravity) rb.AddForce(AdjustGravity());
@@ -109,7 +115,7 @@ public class PlayerMovement : MonoBehaviour
         {
             hasJumped = false;
         }
-        bool jumpPressed = isPlayer1?playerControls.Player1.Jump.triggered:playerControls.Player2.Jump.triggered;
+        bool jumpPressed = isPlayer1 ? playerControls.Player1.Jump.triggered : playerControls.Player2.Jump.triggered;
 
 
         if (jumpPressed)
@@ -158,7 +164,7 @@ public class PlayerMovement : MonoBehaviour
         }
         float speed;
 
-        Vector2 movementInput = isPlayer1?playerControls.Player1.Move.ReadValue<Vector2>():playerControls.Player2.Move.ReadValue<Vector2>();
+        Vector2 movementInput = isPlayer1 ? playerControls.Player1.Move.ReadValue<Vector2>() : playerControls.Player2.Move.ReadValue<Vector2>();
         horizontalInput = movementInput.x;
         Vector3 moveDirection = new Vector3(horizontalInput, 0, 0);
 
@@ -198,11 +204,23 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void HandlePlayerCollision(Collision collision){
-        if (collision.gameObject.CompareTag("Player")){
-            Debug.Log("collided");
+    void HandlePlayerCollision(Collision collision)
+    {
+        Vector2 _lastCollisionDirection;
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Vector2 direction = collision.transform.position - transform.position;
+
+            _lastCollisionDirection = direction.normalized;
+
+            //int p2Speed = collision.gameObject.get
+
+            Debug.Log("Collision direction: " + _lastCollisionDirection);
+            //double knockbackForce = CalculateKnockBackForce();
+            ApplyKnockback(_lastCollisionDirection, 100);
         }
     }
+
     void UpdateTimers()
     {
         List<string> keysToUpdate = new List<string>(activeTimers.Keys);
@@ -255,8 +273,8 @@ public class PlayerMovement : MonoBehaviour
 
     bool DashController(Vector2 movementInput)
     {
-    
-        if (isPlayer1?playerControls.Player1.Dash.triggered:playerControls.Player2.Dash.triggered)
+
+        if (isPlayer1 ? playerControls.Player1.Dash.triggered : playerControls.Player2.Dash.triggered)
         {
             activeTimers["dashTimer"] = dashTimer;
             dashDirection = movementInput;
@@ -277,11 +295,27 @@ public class PlayerMovement : MonoBehaviour
             return true;
         }
 
-        if(activeTimers["dashTimer"] == 0&&isDashing){
+        if (activeTimers["dashTimer"] == 0 && isDashing)
+        {
             isDashing = false;
-            rb.linearVelocity = new Vector3(0,0,0);
+            rb.linearVelocity = new Vector3(0, 0, 0);
         }
         return false;
 
     }
+
+    void ApplyKnockback(Vector2 direction, float force)
+    {
+        activeTimers["stun"] = 100;
+        rb.linearVelocity = new Vector3(
+                direction.x * force ,
+                direction.y * force,
+                0
+            );
+    }
+
+    // double CalculateKnockBackForce(){
+
+    // }
+
 }
