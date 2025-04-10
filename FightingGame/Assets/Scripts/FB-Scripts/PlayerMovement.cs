@@ -28,6 +28,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float dashSpeed;
     [SerializeField] private int dashTimer;
     [SerializeField] private bool isPlayer1;
+    [SerializeField] private int baseKnockback;
+    [SerializeField] float knockBackForce;
 
     private float horizontalInput;
     private float verticalInput;
@@ -70,8 +72,7 @@ public class PlayerMovement : MonoBehaviour
 
             HandleMovement();
         }
-
-
+        knockBackForce = AdjustSpeed(baseKnockback);
         rb.useGravity = false;
         if (hasGravity) rb.AddForce(AdjustGravity());
 
@@ -213,11 +214,10 @@ public class PlayerMovement : MonoBehaviour
 
             _lastCollisionDirection = direction.normalized;
 
-            //int p2Speed = collision.gameObject.get
-
             Debug.Log("Collision direction: " + _lastCollisionDirection);
-            //double knockbackForce = CalculateKnockBackForce();
-            ApplyKnockback(_lastCollisionDirection, 100);
+            PlayerMovement player = collision.gameObject.GetComponent<PlayerMovement>();
+            ApplyKnockback(_lastCollisionDirection, player.knockBackForce);
+            speedTracker = 0;
         }
     }
 
@@ -308,8 +308,8 @@ public class PlayerMovement : MonoBehaviour
     {
         activeTimers["stun"] = 100;
         rb.linearVelocity = new Vector3(
-                direction.x * force ,
-                direction.y * force,
+                -direction.x * force,
+                -direction.y * force,
                 0
             );
     }
