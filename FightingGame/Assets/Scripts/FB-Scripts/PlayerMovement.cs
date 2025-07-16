@@ -1,15 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
-using JetBrains.Annotations;
-using Unity.VisualScripting;
-using System;
-
-//TODO:
-// stun status
-
-
-
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -18,11 +9,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float jumpForce = 8f;
     [SerializeField] private int coyoteTimer = 100;
     [SerializeField] private int jumpBufferTimer = 10;
-
-    private Rigidbody rb;
-    [SerializeField] private bool isGrounded;
-    [SerializeField] private bool wasGrounded;
-    [SerializeField] private int speedTracker = 0;
     [SerializeField] private int[] speedbreakpoints;
     [SerializeField] private float[] accelerationValues;
     [SerializeField] private float dashSpeed;
@@ -31,66 +17,94 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private int baseKnockback;
     [SerializeField] float knockBackForce;
 
-    private float horizontalInput;
-    private float verticalInput;
-    private bool facingRight = true;
-    private Dictionary<string, int> activeTimers = new Dictionary<string, int>();
-    [SerializeField] private bool hasJumped;
+    private Rigidbody rb;
     private PlayerControls playerControls;
-    private Vector2 dashDirection;
+    
+    // State variables
+    private bool isGrounded;
+    private bool wasGrounded;
+    private int speedTracker = 0;
+    private bool hasJumped;
+    private bool facingRight = true;
     private bool hasGravity = true;
     private bool isDashing = false;
-    private object controls;
+    
+    // Input variables
+    private float horizontalInput;
+    private float verticalInput;
+    private bool jumpPressed;
+    private Vector2 movementInput;
+    private Vector2 dashDirection;
+    
+    // Timers
+    private Dictionary<string, int> activeTimers = new Dictionary<string, int>();
 
-    //START & UPDATE
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-
-        playerControls = new PlayerControls(); // Inizializza i controlli
-        playerControls.Enable(); // Abilita gli input
-
+        playerControls = new PlayerControls();
+        playerControls.Enable();
         rb.freezeRotation = true;
 
         activeTimers.Add("coyoteTime", 0);
         activeTimers.Add("jumpBuffer", 0);
         activeTimers.Add("dashTimer", 0);
         activeTimers.Add("stun", 0);
-
-
-
     }
 
     void Update()
     {
-
+        // Get input in Update
+        movementInput = isPlayer1 ? playerControls.Player1.Move.ReadValue<Vector2>() : playerControls.Player2.Move.ReadValue<Vector2>();
+        jumpPressed = isPlayer1 ? playerControls.Player1.Jump.triggered : playerControls.Player2.Jump.triggered;
+        
+        // Handle timers in Update since they're not physics-based
         UpdateTimers();
+        
+        // Handle jump input and buffering in Update
+        JumpControl();
+        
+        // Check for dash input
+        if (isPlayer1 ? playerControls.Player1.Dash.triggered : playerControls.Player2.Dash.triggered)
+        {
+            activeTimers["dashTimer"] = dashTimer;
+            dashDirection = movementInput;
+        }
+    }
 
+    void FixedUpdate()
+    {
+        // Physics-based movement in FixedUpdate
         if (activeTimers["stun"] == 0)
         {
-            JumpControl();
-
             HandleMovement();
         }
+
+        
+        // Apply gravity and knockback forces
         knockBackForce = AdjustSpeed(baseKnockback);
         rb.useGravity = false;
         if (hasGravity) rb.AddForce(AdjustGravity());
-
-
     }
 
-    //COLLISION CONTROL
+    void Bounce() {
+        if (activeTimers["stun"] > 0)
+        {
+            
+        }
+    }
+
     void OnCollisionStay(Collision collision)
     {
         CheckGround(collision);
-        Debug.Log("collided");
     }
 
     void OnCollisionEnter(Collision collision)
     {
+        Debug.Log("onCollisionEnter");        
         CheckGround(collision);
         HandlePlayerCollision(collision);
-        Debug.Log("collided");
+
     }
 
     void OnCollisionExit(Collision collision)
@@ -98,30 +112,21 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = false;
     }
 
-    //MOVEMENT
     void Flip()
     {
-        // Switch facing direction
         facingRight = !facingRight;
-
-        // Rotate 180 degrees around Y axis
         transform.Rotate(0, 180, 0);
     }
 
     void JumpControl()
     {
-
-        //if (isGrounded) hasJumped = false;
         if (!wasGrounded && isGrounded)
         {
             hasJumped = false;
         }
-        bool jumpPressed = isPlayer1 ? playerControls.Player1.Jump.triggered : playerControls.Player2.Jump.triggered;
-
 
         if (jumpPressed)
         {
-
             if ((isGrounded || activeTimers["coyoteTime"] > 0) && !hasJumped)
             {
                 ExecuteJump();
@@ -130,7 +135,6 @@ public class PlayerMovement : MonoBehaviour
             {
                 activeTimers["jumpBuffer"] = jumpBufferTimer;
             }
-
         }
         else
         {
@@ -142,7 +146,6 @@ public class PlayerMovement : MonoBehaviour
 
         if (!isGrounded && wasGrounded && !hasJumped)
         {
-            Debug.Log("coyoteStart: hasJumped-->" + hasJumped + "//isGrounded-->" + isGrounded + "//wasGrounded-->" + wasGrounded);
             activeTimers["coyoteTime"] = coyoteTimer;
         }
 
@@ -163,15 +166,13 @@ public class PlayerMovement : MonoBehaviour
         {
             speedTracker = 0;
         }
-        float speed;
 
-        Vector2 movementInput = isPlayer1 ? playerControls.Player1.Move.ReadValue<Vector2>() : playerControls.Player2.Move.ReadValue<Vector2>();
         horizontalInput = movementInput.x;
         Vector3 moveDirection = new Vector3(horizontalInput, 0, 0);
 
-        if (!DashController(movementInput))
+        if (!DashController())
         {
-            speed = AdjustSpeed(moveDirection.x) * moveSpeed;
+            float speed = AdjustSpeed(moveDirection.x) * moveSpeed;
             speedTracker++;
 
             if ((horizontalInput > 0 && !facingRight) || (horizontalInput < 0 && facingRight))
@@ -179,7 +180,7 @@ public class PlayerMovement : MonoBehaviour
                 Flip();
                 speedTracker -= 10;
             }
-            // Apply different movement force based on ground state
+
             rb.linearVelocity = new Vector3(
                 speed,
                 rb.linearVelocity.y,
@@ -192,7 +193,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
-    //MISC
+
     void CheckGround(Collision collision)
     {
         if (collision.contacts.Length > 0)
@@ -208,17 +209,20 @@ public class PlayerMovement : MonoBehaviour
     void HandlePlayerCollision(Collision collision)
     {
         Vector2 _lastCollisionDirection;
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player")|| activeTimers["stun"]>0)
         {
+            Debug.Log("collided. collision-->"+collision.ToString());
             Vector2 direction = collision.transform.position - transform.position;
-
             _lastCollisionDirection = direction.normalized;
 
-            Debug.Log("Collision direction: " + _lastCollisionDirection);
             PlayerMovement player = collision.gameObject.GetComponent<PlayerMovement>();
-            ApplyKnockback(_lastCollisionDirection, player.knockBackForce);
+            if (collision.gameObject.CompareTag("Player"))
+            {
+                ApplyKnockback(_lastCollisionDirection, player.knockBackForce);
+            }
             speedTracker = 0;
         }
+
     }
 
     void UpdateTimers()
@@ -230,9 +234,7 @@ public class PlayerMovement : MonoBehaviour
             if (activeTimers[key] > 0)
             {
                 activeTimers[key] -= 1;
-                if (activeTimers["coyoteTime"] == 0) Debug.Log("coyote died");
             }
-
         }
     }
 
@@ -271,17 +273,8 @@ public class PlayerMovement : MonoBehaviour
         return gravity;
     }
 
-    bool DashController(Vector2 movementInput)
+    bool DashController()
     {
-
-        if (isPlayer1 ? playerControls.Player1.Dash.triggered : playerControls.Player2.Dash.triggered)
-        {
-            activeTimers["dashTimer"] = dashTimer;
-            dashDirection = movementInput;
-
-
-        }
-
         if (activeTimers["dashTimer"] > 0)
         {
             isDashing = true;
@@ -290,7 +283,6 @@ public class PlayerMovement : MonoBehaviour
                 moveSpeed * dashDirection.y * dashSpeed,
                 0
             );
-            Debug.Log("dashing");
             speedTracker++;
             return true;
         }
@@ -301,7 +293,6 @@ public class PlayerMovement : MonoBehaviour
             rb.linearVelocity = new Vector3(0, 0, 0);
         }
         return false;
-
     }
 
     void ApplyKnockback(Vector2 direction, float force)
@@ -313,9 +304,4 @@ public class PlayerMovement : MonoBehaviour
                 0
             );
     }
-
-    // double CalculateKnockBackForce(){
-
-    // }
-
 }
